@@ -1,16 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { TextBlock } from "./entities/textBlock.entity";
-import { CreateTextBlockDto } from "./dto/create-text-block.dto";
 import { FindTextBlockDto } from "./dto/find-text-block.dto";
 import { UpdateTextBlockDto } from "./dto/update-text-block.dto";
 import { InjectRepository } from "@nestjs/typeorm";
+import { TextBlockDto } from "./dto/text-block.dto";
 
 @Injectable()
 export class TextBlockService {
   constructor(@InjectRepository(TextBlock) private textBlockRepository: Repository<TextBlock>) {}
 
-  async create(textBlockData: CreateTextBlockDto): Promise<TextBlock> {
+  async create(textBlockData: TextBlockDto): Promise<TextBlock> {
     const textBlock = new TextBlock();
     Object.assign(textBlock, textBlockData);
     return this.textBlockRepository.save(textBlock);
@@ -24,8 +24,8 @@ export class TextBlockService {
     return this.textBlockRepository.findOne({where: {id}})
   }
 
-  async findOneByGroup(findTextBlockData: FindTextBlockDto): Promise<TextBlock> {
-    return this.textBlockRepository.findOne({where: { group: findTextBlockData.group}})
+  async findAllByGroup(findTextBlockData: FindTextBlockDto): Promise<TextBlock[]> {
+    return this.textBlockRepository.find({where: { group: findTextBlockData.group}})
   }
 
   async update(id: number, textBlockData: UpdateTextBlockDto): Promise<void> {

@@ -1,4 +1,4 @@
 import { PartialType } from "@nestjs/swagger";
-import { CreateTextBlockDto } from "./create-text-block.dto";
+import { TextBlockDto } from "./text-block.dto";
 
-export class UpdateTextBlockDto extends PartialType(CreateTextBlockDto) {}
+export class UpdateTextBlockDto extends PartialType(TextBlockDto) {}

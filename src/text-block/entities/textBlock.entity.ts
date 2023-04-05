@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty } from "@nestjs/swagger";
 
-@Entity()
+@Entity('TextBlock')
 export class TextBlock {
   @ApiProperty({example: '1', description: 'Уникальный идентификатор'})
   @PrimaryGeneratedColumn()
@@ -15,7 +15,7 @@ export class TextBlock {
   @Column()
   title: string;
 
-  @ApiProperty({example: '1', description: 'Изображение'})
+  @ApiProperty({example: 'test.jpg', description: 'Изображение'})
   @Column({nullable: true})
   image: string;
 

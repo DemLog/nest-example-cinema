@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty } from "@nestjs/swagger";
+import { FileUploadDto } from "../../file-upload/dto/file-upload.dto";
 
 export class CreateTextBlockDto {
   @ApiProperty({example: 'main-hero-text', description: 'Уникальное имя блока'})
@@ -8,11 +9,11 @@ export class CreateTextBlockDto {
 
   @ApiProperty({example: 'Главный блок', description: 'Название блока'})
   @IsNotEmpty()
-  name: string;
+  title: string;
 
-  @ApiProperty({example: '1', description: 'Изображение'})
-  @IsOptional()
-  image: string;
+  @ApiProperty({ type: 'string', format: 'binary', description: 'File content' })
+  @IsNotEmpty()
+  image: Express.Multer.File;
 
   @ApiProperty({example: 'Длинный какой-то текст...', description: 'Текст блока'})
   @IsNotEmpty()
