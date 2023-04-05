@@ -3,32 +3,60 @@ import { ProfileService } from "./profile.service";
 import { CreateProfileDto } from "./dto/create-profile.dto";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
 
-@Controller('profile')
-export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse, ApiOkResponse,
+  ApiOperation,
+  ApiTags
+} from "@nestjs/swagger";
+import { Profile } from "./entities/profile.entity";
+import { Roles } from "../common/decorators/roles.decorator";
 
-  @Post()
+@ApiTags("Профили")
+@ApiBearerAuth()
+@Controller("profile")
+export class ProfileController {
+  constructor(private readonly profileService: ProfileService) {
+  }
+
+  @ApiOperation({ summary: "Создание профиля пользователя" })
+  @ApiCreatedResponse({ description: "Пользователь успешно создан.", type: Profile })
+  @Roles('admin')
+  @Post("create")
   async create(@Body() createProfileDto: CreateProfileDto) {
     return this.profileService.create(createProfileDto);
   }
 
-  @Get()
+  @ApiOperation({ summary: "Получение всех профилей пользователей" })
+  @ApiOkResponse({ description: "Данные пользователей получены", type: [Profile] })
+  @Roles('admin')
+  @Get("")
   async findAll() {
     return this.profileService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: number) {
+  @ApiOperation({ summary: "Получить профиль пользователя по ID" })
+  @ApiOkResponse({ description: "Данные пользователя получены", type: Profile })
+  @Roles('admin', 'user')
+  @Get(":id")
+  async findUserProfile(@Param("id") id: number) {
     return this.profileService.findOne(id);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: number, @Body() updateProfileDto: UpdateProfileDto) {
+  @ApiOperation({ summary: "Редактировать профиль пользователя" })
+  @ApiOkResponse({ description: "Пользователь обновлен успешно." })
+  @Roles('admin', 'user')
+  @Put("edit/:id")
+  async update(@Param("id") id: number, @Body() updateProfileDto: UpdateProfileDto) {
     return this.profileService.update(id, updateProfileDto);
   }
 
-  @Delete(':id')
-  async remove(@Param('id') id: number) {
+  @ApiOperation({ summary: "Удалить профиль пользователя" })
+  @ApiNoContentResponse({ description: "Пользователь был удален." })
+  @Roles('admin', 'user')
+  @Delete("delete/:id")
+  async remove(@Param("id") id: number) {
     return this.profileService.remove(id);
   }
 }
