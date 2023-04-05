@@ -15,15 +15,15 @@ export class ProfileService {
   async create(profileData: CreateProfileDto): Promise<Profile> {
     const profile = new Profile();
     Object.assign(profile, profileData);
-    return await this.profileRepository.save(profile);
+    return this.profileRepository.save(profile);
   }
 
   async findAll(): Promise<Profile[]> {
-    return await this.profileRepository.find();
+    return this.profileRepository.find();
   }
 
   async findOne(id: number): Promise<Profile> {
-    return await this.profileRepository.findOne({ where: { id } });
+    return this.profileRepository.findOne({ where: { id } });
   }
 
   async update(id: number, profileData: UpdateProfileDto): Promise<void> {
@@ -32,6 +32,7 @@ export class ProfileService {
   }
 
   async remove(id: number): Promise<void> {
+    await this.checkUser(id);
     await this.profileRepository.delete(id);
   }
 

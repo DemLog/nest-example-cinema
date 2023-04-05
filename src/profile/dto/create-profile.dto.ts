@@ -3,12 +3,10 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateProfileDto {
   @ApiProperty({example: 'Василий', description: 'Имя'})
-  @IsString()
   @IsNotEmpty()
   firstName: string;
 
   @ApiProperty({example: 'Пупкин', description: 'Фамилия'})
-  @IsString()
   @IsNotEmpty()
   lastName: string;
 
@@ -18,11 +16,9 @@ export class CreateProfileDto {
   email?: string;
 
   @ApiProperty({example: '25', description: 'Возраст'})
-  @IsNumber()
   age: number;
 
   @ApiProperty({example: '+78005553535', description: 'Телефон', required: false})
-  @IsString()
   @IsOptional()
   phone?: string;
 }
