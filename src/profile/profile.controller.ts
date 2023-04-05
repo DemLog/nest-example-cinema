@@ -23,7 +23,7 @@ export class ProfileController {
   @ApiOperation({ summary: "Создание профиля пользователя" })
   @ApiCreatedResponse({ description: "Пользователь успешно создан.", type: Profile })
   @Roles('admin')
-  @Post("create")
+  @Post("")
   async create(@Body() createProfileDto: CreateProfileDto) {
     return this.profileService.create(createProfileDto);
   }
@@ -47,7 +47,7 @@ export class ProfileController {
   @ApiOperation({ summary: "Редактировать профиль пользователя" })
   @ApiOkResponse({ description: "Пользователь обновлен успешно." })
   @Roles('admin', 'user')
-  @Put("edit/:id")
+  @Put(":id")
   async update(@Param("id") id: number, @Body() updateProfileDto: UpdateProfileDto) {
     return this.profileService.update(id, updateProfileDto);
   }
@@ -55,7 +55,7 @@ export class ProfileController {
   @ApiOperation({ summary: "Удалить профиль пользователя" })
   @ApiNoContentResponse({ description: "Пользователь был удален." })
   @Roles('admin', 'user')
-  @Delete("delete/:id")
+  @Delete(":id")
   async remove(@Param("id") id: number) {
     return this.profileService.remove(id);
   }

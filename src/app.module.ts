@@ -7,6 +7,7 @@ import { dataSourceOptions } from "./config/data-source";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
+import { TextBlockModule } from './text-block/text-block.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RolesGuard } from "./common/guards/roles.guard";
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
     ProfileModule,
+    TextBlockModule,
   ],
   providers: [
     {
