@@ -1,6 +1,6 @@
 # Nest Example Cinema
 
-### .ENV конфиг
+### .ENV Config
 ```javascript
 POSTGRES_HOST=localhost // Хост БД
 POSTGRES_USER=postgres // Пользователь БД
@@ -15,7 +15,7 @@ JWT_SECRET_KEY=i06113qyb3@c&)2s8#-@rqw1#l#zyjkjbp*#1-y+ez^!civbao // Секре�
 Клонируйте репозиторий:
 
 ```bash
-git clone https://github.com/<ваш-username>/<ваш-repo>.git 
+git clone https://github.com/DemLog/nest-example-cinema.git
 ```
 
 Установите зависимости:
