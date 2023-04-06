@@ -6,8 +6,15 @@ import { TextBlock } from "./entities/textBlock.entity";
 import { FileUploadModule } from "../file-upload/file-upload.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TextBlock]), FileUploadModule],
+  imports: [
+    // Импортируем TypeOrmModule, чтобы модуль мог использовать TextBlock сущность
+    TypeOrmModule.forFeature([TextBlock]),
+    // Импортируем FileUploadModule, чтобы модуль мог использовать сервисы и контроллеры для загрузки файлов
+    FileUploadModule
+  ],
+  // Добавляем контроллеры
   controllers: [TextBlockController],
+  // Добавляем сервисы
   providers: [TextBlockService]
 })
 export class TextBlockModule {}

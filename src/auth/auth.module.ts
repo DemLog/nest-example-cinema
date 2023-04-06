@@ -9,8 +9,10 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ProfileModule } from "../profile/profile.module";
 
 @Module({
+  // Импортируем модуль TypeOrm и регистрируем в нем сущности Auth и Profile
   imports: [
     TypeOrmModule.forFeature([Auth, Profile]),
+    // Импортируем модуль Jwt и регистрируем его синхронно, указывая параметры создания токена
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -19,10 +21,14 @@ import { ProfileModule } from "../profile/profile.module";
       }),
       inject: [ConfigService],
     }),
+    // Импортируем модуль ProfileModule, чтобы использовать в AuthService
     forwardRef(() => ProfileModule)
   ],
+  // Регистрируем AuthService в провайдерах модуля
   providers: [AuthService],
+  // Регистрируем AuthController в контроллерах модуля
   controllers: [AuthController],
+  // Экспортируем AuthService и JwtModule для их использования в других модулях
   exports: [
     AuthService,
     JwtModule

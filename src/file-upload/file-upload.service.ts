@@ -13,6 +13,11 @@ import { UnusedFilesRemoveDto } from "./dto/unused-files-remove.dto";
 export class FileUploadService {
   constructor(@InjectRepository(File) private fileRepository: Repository<File>) {}
 
+  /**
+   * Создает новый файл в хранилище.
+   * @param fileUpload - данные о файле, переданные клиентом
+   * @returns - созданный файл
+   */
   async create(fileUpload: FileUploadDto): Promise<File> {
     const { originalname, mimetype, buffer } = fileUpload.file;
 
@@ -23,6 +28,7 @@ export class FileUploadService {
     file.size = buffer.length;
     file.createdAt = new Date();
 
+    // Создать папку для сохранения файлов, если ее нет
     const uploadDir = path.join(__dirname, '..', 'file-upload', 'uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -34,6 +40,12 @@ export class FileUploadService {
     return this.fileRepository.save(file);
   }
 
+  /**
+   * Обновляет метаданные файла.
+   * @param id - идентификатор файла
+   * @param fileEssenceData - данные для обновления метаданных файла
+   * @returns - обновленный файл
+   */
   async updateEssence(id: number, fileEssenceData: FileUpdateEssenceDto): Promise<File> {
     const file: File = await this.fileRepository.findOne({where: {id}});
     file.essenceTable = fileEssenceData.essenceTable;
@@ -42,6 +54,10 @@ export class FileUploadService {
     return file;
   }
 
+  /**
+   * Удаляет все файлы, которые не используются в какой-либо таблице и были созданы более часа назад.
+   * @returns - объект с информацией о количестве удаленных файлов
+   */
   async deleteUnusedFiles(): Promise<UnusedFilesRemoveDto> {
     const files = await this.fileRepository.find({
       where: {
@@ -50,11 +66,37 @@ export class FileUploadService {
       },
     });
     for (const file of files) {
-      const filePath = path.join(__dirname, '..', 'file-upload', 'uploads', file.filename);
-      await fs.promises.unlink(filePath);
-      await this.fileRepository.delete(file.id);
+      await this.removeByFileName(file.filename);
     }
 
     return {count: files.length, message: `Всего было удалено: ${files.length} файл(ов)`}
+  }
+
+  /**
+   * Удаляет файл из базы данных и с диска по имени файла.
+   * @param fileName - название файла
+   * @returns - ничего не возвращает
+   */
+  async removeByFileName(fileName: string): Promise<void> {
+    const file = await this.fileRepository.findOne({ where: { filename: fileName} });
+    if (file) {
+      await this.fileRepository.delete(file.id);
+      await this.deleteFileFromDisk(fileName);
+    }
+  }
+
+  /**
+   * Удаляет файл с диска по указанному имени файла.
+   * @param fileName - название файла
+   * @returns - ничего не возвращает
+   */
+  private async deleteFileFromDisk(fileName: string): Promise<void> {
+    try {
+      const filePath = path.join(__dirname, '..', 'file-upload', 'uploads', fileName);
+      await fs.promises.unlink(filePath); // удаляем файл по указанному пути
+    } catch (error) {
+      // обработка ошибок, если удаление файла не удалось
+      throw new Error(`Ошибка при удалении файла: ${error.message}`);
+    }
   }
 }

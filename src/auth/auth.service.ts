@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as bcrypt from "bcryptjs";
@@ -19,18 +19,26 @@ export class AuthService {
     @InjectRepository(Profile)
     private profileRepository: Repository<Profile>,
     private jwtService: JwtService
-  ) {
-  }
+  ) {}
 
+  /**
+   * Регистрирует пользователя, сохраняя его данные в базе данных и выдаёт токен.
+   * @param registerDto - данные нового пользователя
+   * @returns - токен и данные профиля пользователя
+   */
   async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
     const { login, password, ...profileData } = registerDto;
-    const existingUser = await this.authRepository.findOne({ where: { login } });
 
+    // Проверяем, есть ли уже пользователь с таким логином в базе данных
+    const existingUser = await this.authRepository.findOne({ where: { login } });
     if (existingUser) {
-      throw new Error("User with this login already exists");
+      throw new HttpException('Пользователь с таким логином уже существует', HttpStatus.BAD_REQUEST);
     }
 
+    // Хэшируем пароль
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Создаём новый объект Auth и сохраняем его в базу данных
     const newAuthUser = this.authRepository.create({
       login,
       password: hashedPassword,
@@ -38,27 +46,46 @@ export class AuthService {
     });
     await this.authRepository.save(newAuthUser);
 
+    // Создаём новый объект Profile, связываем его с объектом Auth и сохраняем в базу данных
     const newProfileUser = this.profileRepository.create({
       ...profileData,
       auth: newAuthUser
     });
     await this.profileRepository.save(newProfileUser);
 
+    // Генерируем и возвращаем токен и данные профиля пользователя
     const token = await this.generateToken(newAuthUser);
     return { token, ...newProfileUser };
   }
 
+  /**
+   * Проверяет данные пользователя и выдаёт токен.
+   * @param loginDto - данные пользователя
+   * @returns - токен
+   */
   async login(loginDto: LoginDto): Promise<TokenDto> {
     const user = await this.validateUser(loginDto);
+
+    // Генерируем и возвращаем токен
     const token = await this.generateToken(user);
     return { token };
   }
 
+  /**
+   * Генерирует JWT токен для пользователя.
+   * @param user - пользователь
+   * @returns - JWT токен
+   */
   private async generateToken(user: Auth): Promise<string> {
     const payload: Token = { userId: user.id, roles: user.role };
     return this.jwtService.sign(payload);
   }
 
+  /**
+   * Проверяет пользователя на наличие в базе данных.
+   * @param loginDto - данные пользователя
+   * @returns - объект Auth
+   */
   private async validateUser(loginDto: LoginDto): Promise<Auth> {
     const user = await this.authRepository.findOne({ where: { login: loginDto.login } });
     if (!user) {

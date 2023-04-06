@@ -12,11 +12,13 @@ export class FileUploadController {
     private readonly fileUploadService: FileUploadService
   ) {}
 
+  // Удаление неиспользуемых файлов
   @ApiOperation({ summary: "Удалить неиспользуемые файлы, созданные не менее 1 часа назад" })
   @ApiNoContentResponse({ description: "Файлы были удалены.", type: UnusedFilesRemoveDto })
   @Roles('admin')
   @Delete('unused-files')
   async deleteUnusedFiles() {
+    // Вызываем метод сервиса для удаления неиспользуемых файлов
     return await this.fileUploadService.deleteUnusedFiles();
   }
 }

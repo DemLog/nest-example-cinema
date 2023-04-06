@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UploadedFile, UseInterceptors } from "@nestjs/common";
 import {
-  ApiBearerAuth, ApiConsumes,
+  ApiBearerAuth,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
@@ -18,6 +19,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { FileUploadService } from "../file-upload/file-upload.service";
 import { FileUploadDto } from "../file-upload/dto/file-upload.dto";
 import { TextBlockDto } from "./dto/text-block.dto";
+import { TextBlockUpdateDto } from "./dto/text-block-update.dto";
 
 @ApiTags("Текстовый блок")
 @Controller("text-block")
@@ -25,8 +27,7 @@ export class TextBlockController {
   constructor(
     private readonly textBlockService: TextBlockService,
     private readonly fileUploadService: FileUploadService
-  ) {
-  }
+  ) {}
 
   @ApiOperation({ summary: "Создание текстового блока" })
   @ApiCreatedResponse({ description: "Текстовый блок успешно создан.", type: TextBlock })
@@ -47,7 +48,7 @@ export class TextBlockController {
 
     const textBlockDto: TextBlockDto = {
       ...createTextBlockDto,
-      image: image ? savedFile.filename : ''
+      image: image ? savedFile.filename : null
     };
     const textBlock = await this.textBlockService.create(textBlockDto);
 
@@ -71,37 +72,51 @@ export class TextBlockController {
       : this.textBlockService.findAll();
   }
 
-  @ApiOperation({ summary: "Получить текстовый блок по ID" })
-  @ApiCreatedResponse({ description: "Текстовый блок получен.", type: TextBlock })
+  @ApiOperation({ summary: 'Получить текстовый блок по ID' })
+  @ApiCreatedResponse({ description: 'Текстовый блок получен.', type: TextBlock })
   @Public()
-  @Get(":id")
-  async getTextBlock(@Param("id") id: number) {
+  @Get(':id')
+  async getTextBlock(@Param('id') id: number): Promise<TextBlock> {
     return this.textBlockService.findOneById(id);
   }
 
-  @ApiOperation({ summary: "Редактировать текстовый блок" })
-  @ApiOkResponse({ description: "Текстовый блок обновлен успешно." })
+  @ApiOperation({ summary: 'Редактировать текстовый блок' })
+  @ApiOkResponse({ description: 'Текстовый блок обновлен успешно.' })
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
-  @Roles("admin")
-  @Put(":id")
-  @UseInterceptors(FileInterceptor('file'))
+  @Roles('admin')
+  @Put(':id')
+  @UseInterceptors(FileInterceptor('image'))
   async updateTextBlock(
     @Param('id') id: number,
     @Body() updateTextBlockDto: UpdateTextBlockDto,
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() image: Express.Multer.File,
   ): Promise<void> {
-    if (file) {
-      const fileUploadDto: FileUploadDto = { file: file };
-      const savedFile = await this.fileUploadService.create(fileUploadDto);
+    let savedFile;
 
-      // await this.fileUploadService.deleteFile(textBlock.image);
-
-      updateTextBlockDto.image = savedFile.filename;
+    if (image) {
+      // загрузить новое изображение
+      const fileUploadDto: FileUploadDto = { file: image };
+      savedFile = await this.fileUploadService.create(fileUploadDto);
     }
 
-    await this.textBlockService.update(id, updateTextBlockDto);
+    // достаем прошлое изображение
+    const prevTextBlock: TextBlock = await this.textBlockService.findOneById(id);
+    const prevImage = prevTextBlock.image;
+
+    // обновить текстовый блок
+    const textBlockUpdateDto: TextBlockUpdateDto = {
+      ...updateTextBlockDto,
+      image: image ? savedFile.filename : null,
+    };
+    await this.textBlockService.update(id, textBlockUpdateDto);
+
+    // удалить старый файл изображения (если есть)
+    if (prevImage && savedFile) {
+      await this.fileUploadService.removeByFileName(prevImage);
+    }
   }
+
 
   @ApiOperation({ summary: "Удалить текстовый блок" })
   @ApiNoContentResponse({ description: "Текстовый блок был удален." })
@@ -111,6 +126,4 @@ export class TextBlockController {
   async remove(@Param("id") id: number) {
     return this.textBlockService.remove(id);
   }
-
-
 }
