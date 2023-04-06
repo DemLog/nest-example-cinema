@@ -45,3 +45,7 @@ npm run start:dev
 ```
 
 Приложение будет доступно по адресу http://localhost:3000.
+
+### Endpoints
+
+Вся доступная документация по эндпоинтам находится в http://localhost:3000/docs
